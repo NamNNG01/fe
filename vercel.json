@@ -11,6 +11,10 @@
   ],
   "routes": [
     {
+      "src": "/",
+      "dest": "/taskpane.html"
+    },
+    {
       "src": "/(.*)",
       "headers": {
         "Access-Control-Allow-Origin": "*",
