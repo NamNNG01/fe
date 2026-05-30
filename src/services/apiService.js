@@ -25,7 +25,7 @@ const LOCAL_API_URL = "http://localhost:3001";
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? `${LOCAL_API_URL}/api/v1`
-    : "https://excel-add-in-production-141f.up.railway.app/api/v1";
+    : "https://web-production-8b555d.up.railway.app/api/v1";
 
 /**
  * Lấy JWT token từ localStorage
