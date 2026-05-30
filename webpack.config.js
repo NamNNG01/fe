@@ -94,7 +94,7 @@ module.exports = async (env, options) => {
         Promise: ["es6-promise", "Promise"],
       }),
     ],
-    devServer: {
+    devServer: dev ? {
       hot: true,
       headers: {
         "Access-Control-Allow-Origin": "*",
@@ -107,7 +107,7 @@ module.exports = async (env, options) => {
             : await getHttpsOptions(),
       },
       port: process.env.npm_package_config_dev_server_port || 3000,
-    },
+    } : undefined,
   };
 
   return config;
