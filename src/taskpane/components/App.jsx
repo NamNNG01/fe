@@ -50,14 +50,7 @@ import TemplateGallery from "./TemplateGallery";
 import ExcelTools from "./ExcelTools";
 
 // API Service
-import {
-  isLoggedIn,
-  getProfile,
-  getCredits,
-  logout,
-  createPaymentIntent,
-  getPaymentStatus,
-} from "../../services/apiService";
+import { isLoggedIn, getProfile, getCredits, logout } from "../../services/apiService";
 const App = (props) => {
   const { title } = props;
   const [selectedTab, setSelectedTab] = useState("formula");
@@ -68,11 +61,6 @@ const App = (props) => {
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [isAdminViewOpen, setIsAdminViewOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  // Payment state
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [paymentIntent, setPaymentIntent] = useState(null);
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null);
 
   // Check authentication on mount
   useEffect(() => {
@@ -179,54 +167,6 @@ const App = (props) => {
     }
   };
 
-  const handleOpenPayment = async () => {
-    try {
-      setPaymentLoading(true);
-
-      // gọi backend tạo intent
-      const res = await createPaymentIntent("credits_50"); // hoặc pro_monthly
-
-      setPaymentIntent(res.intent);
-      setPaymentStatus(null);
-      setShowPaymentDialog(true);
-
-      // bắt đầu polling status
-      startPollingPayment(res.intent.id);
-    } catch (err) {
-      console.error("Payment error:", err);
-    } finally {
-      setPaymentLoading(false);
-    }
-  };
-
-  const startPollingPayment = (intentId) => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await getPaymentStatus(intentId);
-
-        setPaymentStatus(res);
-
-        if (res.status === "paid") {
-          clearInterval(interval);
-
-          // refresh user data
-          const [profileData, creditsData] = await Promise.all([getProfile(), getCredits()]);
-
-          setUser(profileData);
-          setCredits(creditsData);
-
-          setShowPaymentDialog(false);
-        }
-
-        if (res.status === "expired") {
-          clearInterval(interval);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }, 3000);
-  };
-
   // Loading state
   if (isLoading) {
     return (
@@ -294,7 +234,7 @@ const App = (props) => {
               appearance="subtle"
               size="small"
               icon={<Star24Regular />}
-              onClick={handleOpenPayment}
+              onClick={() => setShowUpgradeDialog(true)}
               className="credits-badge"
             >
               {credits?.credits ?? 0} lượt | Nâng cấp
@@ -426,40 +366,6 @@ const App = (props) => {
           </DialogBody>
         </DialogSurface>
       </Dialog>
-
-      {/* PAYMENT DIALOG */}
-      {showPaymentDialog && paymentIntent && (
-        <Dialog open={showPaymentDialog}>
-          <DialogSurface style={{ maxWidth: 420 }}>
-            <DialogBody>
-              <h3>Thanh toán nâng cấp</h3>
-
-              <p>
-                <b>Số tiền:</b> {paymentIntent.amount} VND
-              </p>
-              <p>
-                <b>Mã chuyển khoản:</b> {paymentIntent.transferCode}
-              </p>
-
-              <img
-                src={paymentIntent.qrData.qrCodeUrl}
-                alt="QR Payment"
-                style={{ width: "100%" }}
-              />
-
-              <p style={{ fontSize: 12, color: "gray" }}>Đang chờ thanh toán...</p>
-
-              {paymentStatus && (
-                <p>
-                  Trạng thái: <b>{paymentStatus.status}</b>
-                </p>
-              )}
-
-              <Button onClick={() => setShowPaymentDialog(false)}>Đóng</Button>
-            </DialogBody>
-          </DialogSurface>
-        </Dialog>
-      )}
     </div>
   );
 };
