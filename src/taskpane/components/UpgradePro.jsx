@@ -32,7 +32,10 @@ import {
 import { getCredits } from "../../services/apiService";
 
 // Payment page URL
-const PAYMENT_PAGE_URL = "http://localhost:3000/pricing";
+const PAYMENT_PAGE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000/pricing"
+    : "https://fe-rho-lemon.vercel.app/pricing";
 const UpgradePro = ({ onClose, currentPlan }) => {
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [selectedPlan, setSelectedPlan] = useState("pro_monthly");

@@ -7,7 +7,7 @@ const webpack = require("webpack");
 
 const urlDev = "https://localhost:3000/";
 // Production URL - Vercel deployment (UPDATED)
-const urlProd = "https://excel-add-in-six.vercel.app/";
+const urlProd = "https://fe-rho-lemon.vercel.app/";
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
