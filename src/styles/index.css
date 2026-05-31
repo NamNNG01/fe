@@ -408,22 +408,22 @@ textarea.fui-Textarea__textarea:focus {
   display: flex !important;
   flex-wrap: nowrap !important;
   gap: 2px !important;
-  justify-content: space-around !important;
+  justify-content: space-between !important;
 }
 
 /* Individual Tab Item */
 .tabs-container [role="tab"] {
-  flex: 1 1 auto !important;
+  flex: 1 1 0% !important; /* Force equal width in all modes */
   min-width: 0 !important;
   height: 48px !important;
-  padding: 0 8px !important;
+  padding: 0 4px !important;
   border-radius: 12px 12px 0 0 !important;
   display: flex !important;
-  flex-direction: row !important; /* Row for better spacing when wide */
+  flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   border: none !important;
 }
 
@@ -431,6 +431,7 @@ textarea.fui-Textarea__textarea:focus {
 .tabs-container [role="tab"] .fui-Tab__icon {
   margin: 0 !important;
   font-size: 20px !important;
+  flex-shrink: 0 !important;
 }
 
 /* Tab Label (Text) */
@@ -439,17 +440,17 @@ textarea.fui-Textarea__textarea:focus {
   font-weight: 500 !important;
   white-space: nowrap !important;
   overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  text-overflow: clip !important; /* No dots when hidden */
 }
 
 /* COMPACT MODE (Icons Only) */
 .tabs-container--compact [role="tab"] {
-  height: 44px !important;
+  height: 42px !important;
   padding: 0 !important;
 }
 
 .tabs-container--compact [role="tab"] .fui-Tab__icon {
-  font-size: 22px !important; /* Larger icons when text is hidden */
+  font-size: 20px !important;
 }
 
 /* HOVER & SELECTED STATES */

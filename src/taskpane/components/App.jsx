@@ -72,8 +72,8 @@ const App = (props) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Is compact mode (only icons)
-  const isCompact = windowWidth < 480;
+  // Is compact mode (only icons) - High threshold to ensure text only shows when very wide
+  const isCompact = windowWidth < 650;
 
   // ✅ NEW LOGIC: Poll localStorage for payment success flag
   // This is more reliable than callbacks or events in Office iframe
