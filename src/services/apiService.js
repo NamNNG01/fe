@@ -19,7 +19,7 @@ import { getExcelContext as getExcelContextFromService } from "./excelContextSer
 // ============================================================================
 
 // 🔴 Cấu hình API Localhost
-const LOCAL_API_URL = "http://localhost:3001"; 
+const LOCAL_API_URL = "http://localhost:3001";
 
 // Backend API URL - Auto-detect local vs production
 const API_BASE_URL =
@@ -341,12 +341,28 @@ export async function getPricing() {
  * Tạo payment intent (QR code)
  * @returns { intent: { id, amount, transferCode, qrData, expiresAt } }
  */
-export async function createPaymentIntent(plan) {
-  return apiCall("/payments/intents", {
+export const createPaymentIntent = async (plan) => {
+  const res = await fetch("/api/v1/payments/intents", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
     body: JSON.stringify({ plan }),
   });
-}
+
+  return res.json();
+};
+
+export const getPaymentStatus = async (id) => {
+  const res = await fetch(`/api/v1/payments/intents/${id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  return res.json();
+};
 
 /**
  * Lấy trạng thái payment intent (polling)
