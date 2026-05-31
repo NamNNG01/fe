@@ -342,7 +342,7 @@ export async function getPricing() {
  * @returns { intent: { id, amount, transferCode, qrData, expiresAt } }
  */
 export const createPaymentIntent = async (plan) => {
-  const res = await fetch(`${API_BASE}/payments/intents`, {
+  const res = await fetch(`${API_BASE_URL}/payments/intents`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -355,14 +355,11 @@ export const createPaymentIntent = async (plan) => {
 };
 
 export const getPaymentStatus = async (id) => {
-  const res = await fetch(
-    `${API_BASE}/payments/intents/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-      },
-    }
-  );
+  const res = await fetch(`${API_BASE_URL}/payments/intents/${id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+    },
+  });
 
   return res.json();
 };
