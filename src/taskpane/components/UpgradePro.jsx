@@ -78,7 +78,7 @@ const UpgradePro = ({ onClose, currentPlan }) => {
       if (!res.ok) throw new Error(data.message || "Create payment failed");
 
       // 2. Lấy link thanh toán từ backend trả về
-      const paymentUrl = data?.intent?.paymentUrl || data?.paymentUrl;
+      const paymentUrl = data?.intent?.qrData?.qrCodeUrl;
 
       if (!paymentUrl) {
         throw new Error("Không tìm thấy payment URL");
