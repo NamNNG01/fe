@@ -11,17 +11,19 @@
   ],
   "routes": [
     {
+      "src": "/manifest.xml",
+      "headers": {
+        "Content-Type": "application/xml",
+        "Cache-Control": "no-store, no-cache, must-revalidate"
+      },
+      "dest": "/manifest.xml"
+    },
+    {
       "src": "/",
       "dest": "/taskpane.html"
     },
     {
       "src": "/(.*)",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Authorization",
-        "Content-Security-Policy": "frame-ancestors https://*.office.com https://*.officeapps.live.com https://*.sharepoint.com https://*.microsoft.com"
-      },
       "dest": "/$1"
     }
   ]
