@@ -40,8 +40,9 @@ const PAYMENT_API_BASE = "https://web-production-8b555d.up.railway.app/api/v1";
 const UpgradePro = ({ onClose, currentPlan }) => {
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [selectedPlan, setSelectedPlan] = useState("pro_monthly");
-  const [status, setStatus] = useState("idle"); // idle, waiting, success
+  const [status, setStatus] = useState("idle"); // idle, waiting, success, qr_display
   const [error, setError] = useState("");
+  const [paymentData, setPaymentData] = useState(null);
 
   const pollingRef = useRef(null);
 
@@ -77,18 +78,27 @@ const UpgradePro = ({ onClose, currentPlan }) => {
 
       if (!res.ok) throw new Error(data.message || "Create payment failed");
 
-      // 2. Lấy link thanh toán từ backend trả về
-      const paymentUrl = data?.intent?.qrData?.qrCodeUrl;
+      // 2. Lấy QR code từ backend trả về
+      const qrCodeUrl = data?.intent?.qrData?.qrCodeUrl;
+      const amount = data?.intent?.amount;
+      const transferCode = data?.intent?.transferCode;
+      const intentId = data?.intent?.id;
 
-      if (!paymentUrl) {
-        throw new Error("Không tìm thấy payment URL");
+      if (!qrCodeUrl) {
+        throw new Error("Không tìm thấy QR code");
       }
 
-      // 3. Mở trang thanh toán
-      window.open(paymentUrl, "_blank");
+      // 3. Lưu data và hiển thị QR trong dialog
+      setPaymentData({
+        qrCodeUrl,
+        amount,
+        transferCode,
+        intentId,
+      });
+      setStatus("qr_display");
 
-      // 4. Bắt đầu polling
-      startCreditPolling();
+      // 4. Bắt đầu polling để detect thanh toán
+      startCreditPolling(intentId);
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -96,7 +106,7 @@ const UpgradePro = ({ onClose, currentPlan }) => {
     }
   };
 
-  const startCreditPolling = () => {
+  const startCreditPolling = (intentId) => {
     if (pollingRef.current) clearInterval(pollingRef.current);
 
     let pollCount = 0;
@@ -166,6 +176,142 @@ const UpgradePro = ({ onClose, currentPlan }) => {
             </Text>
           </div>
         </DialogContent>
+      </>
+    );
+  }
+
+  // ============== QR CODE PAYMENT VIEW ==============
+  if (status === "qr_display" && paymentData) {
+    return (
+      <>
+        <DialogTitle>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Sparkle24Filled style={{ color: "#3b82f6" }} />
+            <span>Thanh toán qua QR Banking</span>
+          </div>
+        </DialogTitle>
+
+        <DialogContent>
+          <div style={{ textAlign: "center" }}>
+            {/* QR Code */}
+            <div
+              style={{
+                marginBottom: "20px",
+                padding: "8px",
+                background: "#f8fafc",
+                borderRadius: "12px",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <img
+                src={paymentData.qrCodeUrl}
+                alt="QR Code"
+                style={{
+                  width: "100%",
+                  maxWidth: "280px",
+                  height: "auto",
+                  aspectRatio: "1 / 1",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                }}
+              />
+            </div>
+
+            {/* Payment Info */}
+            <div
+              style={{
+                background: "#eff6ff",
+                padding: "16px",
+                borderRadius: "8px",
+                marginBottom: "16px",
+                border: "1px solid #bfdbfe",
+              }}
+            >
+              <Text size={200} style={{ color: "#6b7280", marginBottom: "8px" }}>
+                Thông tin thanh toán
+              </Text>
+              <div
+                style={{
+                  textAlign: "center",
+                  paddingTop: "8px",
+                  borderTop: "1px solid #bfdbfe",
+                }}
+              >
+                <div style={{ marginBottom: "8px" }}>
+                  <Text size={200} style={{ color: "#6b7280", display: "block" }}>
+                    Số tiền
+                  </Text>
+                  <Text
+                    weight="bold"
+                    style={{ color: "#2563eb", fontSize: "18px", display: "block" }}
+                  >
+                    {paymentData.amount?.toLocaleString?.()} ₫
+                  </Text>
+                </div>
+                <div>
+                  <Text size={200} style={{ color: "#6b7280", display: "block" }}>
+                    Mã chuyển khoản
+                  </Text>
+                  <Text
+                    weight="semibold"
+                    style={{ color: "#111827", fontSize: "16px", display: "block" }}
+                  >
+                    {paymentData.transferCode}
+                  </Text>
+                </div>
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div
+              style={{
+                background: "#f0fdf4",
+                padding: "12px",
+                borderRadius: "8px",
+                marginBottom: "16px",
+                border: "1px solid #dcfce7",
+              }}
+            >
+              <Text size={200} style={{ color: "#15803d", fontStyle: "italic" }}>
+                Quét mã QR bằng ứng dụng ngân hàng để thanh toán. Chúng tôi sẽ tự động cập nhật khi thanh toán thành công.
+              </Text>
+            </div>
+
+            {/* Polling Status */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "8px 12px",
+                background: "#fef3c7",
+                borderRadius: "6px",
+                border: "1px solid #fcd34d",
+              }}
+            >
+              <Spinner size="tiny" />
+              <Text size={200} style={{ color: "#92400e" }}>
+                Chờ xác nhận thanh toán...
+              </Text>
+            </div>
+          </div>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            appearance="secondary"
+            onClick={() => {
+              setStatus("idle");
+              setPaymentData(null);
+              setError("");
+              if (pollingRef.current) clearInterval(pollingRef.current);
+            }}
+          >
+            Quay lại
+          </Button>
+        </DialogActions>
       </>
     );
   }
