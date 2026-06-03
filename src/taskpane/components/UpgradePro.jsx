@@ -36,6 +36,7 @@ const PAYMENT_PAGE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3000/pricing"
     : "https://fe-rho-lemon.vercel.app/pricing";
+const PAYMENT_API_BASE = "https://web-production-8b555d.up.railway.app/api/v1";
 const UpgradePro = ({ onClose, currentPlan }) => {
   const [billingCycle, setBillingCycle] = useState("monthly");
   const [selectedPlan, setSelectedPlan] = useState("pro_monthly");
@@ -50,30 +51,49 @@ const UpgradePro = ({ onClose, currentPlan }) => {
     };
   }, []);
 
-  const handleOpenPaymentPage = () => {
-    // Get token from localStorage
+  const handleOpenPaymentPage = async () => {
     const token = localStorage.getItem("auth_token");
     if (!token) {
       setError("Vui lòng đăng nhập lại để tiếp tục.");
       return;
     }
 
-    // Build URL with token and plan
     const plan = selectedPlan === "student" ? "student" : selectedPlan;
-    let url = `${PAYMENT_PAGE_URL}?token=${encodeURIComponent(token)}&plan=${plan}`;
 
-    // If running locally, pass the ngrok API URL so the pricing page calls local BE
-    if (window.location.hostname === "localhost") {
-      const localApiUrl = "https://broodier-unsistered-orlando.ngrok-free.dev/api/v1";
-      url += `&api=${encodeURIComponent(localApiUrl)}`;
+    try {
+      setStatus("waiting");
+
+      // 1. Tạo payment intent ở BACKEND
+      const res = await fetch(`${PAYMENT_API_BASE}/payments/intents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ plan }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Create payment failed");
+
+      // 2. Lấy link thanh toán từ backend trả về
+      const paymentUrl = data?.intent?.qrData?.qrCodeUrl;
+
+      if (!paymentUrl) {
+        throw new Error("Không tìm thấy payment URL");
+      }
+
+      // 3. Mở trang thanh toán
+      window.open(paymentUrl, "_blank");
+
+      // 4. Bắt đầu polling
+      startCreditPolling();
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+      setStatus("idle");
     }
-
-    // Open in browser
-    window.open(url, "_blank");
-
-    // Start polling credits to detect upgrade
-    setStatus("waiting");
-    startCreditPolling();
   };
 
   const startCreditPolling = () => {
